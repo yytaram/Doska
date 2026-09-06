@@ -1,0 +1,3 @@
+# Generated files managed by their own tools.
+apps/admin/next-env.d.ts
+pnpm-lock.yaml

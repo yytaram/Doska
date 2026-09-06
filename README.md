@@ -44,6 +44,9 @@ Do not commit the copied files: they are ignored by Git.
 pnpm lint
 pnpm typecheck
 pnpm build
+pnpm db:migrate
+pnpm db:seed
+pnpm test
 pnpm mobile:start
 pnpm mobile:android
 pnpm api:dev
@@ -61,6 +64,9 @@ pnpm db:health
 
 See [local development services](docs/local-development.md) for ports, health
 checks, logs, shutdown and reset instructions.
+
+See [database schema and reference data](docs/database.md) for migrations,
+database reset instructions, starter categories and the 90-city seed catalog.
 
 `pnpm mobile:ios` opens an iOS simulator only on macOS. On Windows, use Expo Go
 on an iPhone or use a cloud build later.

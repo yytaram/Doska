@@ -5,12 +5,12 @@ ports are bound to `127.0.0.1`, so they are available only on this computer.
 
 ## Services
 
-| Service | Local address | Purpose |
-| --- | --- | --- |
-| PostgreSQL | `127.0.0.1:5432` | Application database |
-| Redis | `127.0.0.1:6379` | Later: rate limits, jobs and presence |
-| MinIO API | `http://127.0.0.1:9000` | S3-compatible object storage |
-| MinIO console | `http://127.0.0.1:9002` | Local storage administration |
+| Service       | Local address           | Purpose                               |
+| ------------- | ----------------------- | ------------------------------------- |
+| PostgreSQL    | `127.0.0.1:5432`        | Application database                  |
+| Redis         | `127.0.0.1:6379`        | Later: rate limits, jobs and presence |
+| MinIO API     | `http://127.0.0.1:9000` | S3-compatible object storage          |
+| MinIO console | `http://127.0.0.1:9002` | Local storage administration          |
 
 The checked-in defaults are development-only credentials. Do not reuse them in
 staging or production.
@@ -23,6 +23,8 @@ Start Docker Desktop, then run from the repository root:
 docker compose up -d
 docker compose ps
 pnpm db:health
+pnpm db:migrate
+pnpm db:seed
 ```
 
 When the services are ready, every entry in `docker compose ps` should report
@@ -69,3 +71,6 @@ docker compose --env-file infra/.env up -d
 
 Copy `apps/api/.env.example` to `apps/api/.env` when you need to change the API
 configuration. Neither local `.env` file should be committed.
+
+The API environment file is also required by Prisma commands. See
+[database schema and reference data](database.md) for migration and seed details.

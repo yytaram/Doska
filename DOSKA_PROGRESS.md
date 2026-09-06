@@ -481,26 +481,26 @@ register → create ad → find ad → send offer → chat → close ad → repo
 ### Current status
 
 - Overall status: `in_progress`
-- Current batch: `Batch 3`
+- Current batch: `Batch 4`
 - Last updated: `2026-09-07`
 
 ### Completed work
 
-| Batch | Status | Notes |
-|---|---|---|
-| 0 | complete | Product brief, MVP boundaries and end-to-end flow documented |
-| 1 | complete | pnpm monorepo foundation, runnable applications and shared tooling created |
-| 2 | complete | Local PostgreSQL, Redis and MinIO services and API health checks created |
-| 3 | not_started | Database schema not created |
-| 4 | not_started | Authentication not created |
-| 5 | not_started | Ads API not created |
-| 6 | not_started | Mobile UI not created |
-| 7 | not_started | Feed/search not created |
-| 8 | not_started | Offers/chat not created |
-| 9 | not_started | Moderation/admin not created |
-| 10 | not_started | Push/reliability not created |
-| 11 | not_started | Deployment not created |
-| 12 | not_started | Security/beta not started |
+| Batch | Status      | Notes                                                                      |
+| ----- | ----------- | -------------------------------------------------------------------------- |
+| 0     | complete    | Product brief, MVP boundaries and end-to-end flow documented               |
+| 1     | complete    | pnpm monorepo foundation, runnable applications and shared tooling created |
+| 2     | complete    | Local PostgreSQL, Redis and MinIO services and API health checks created   |
+| 3     | complete    | Prisma schema, migration, reference seeds and database constraints created |
+| 4     | not_started | Authentication not created                                                 |
+| 5     | not_started | Ads API not created                                                        |
+| 6     | not_started | Mobile UI not created                                                      |
+| 7     | not_started | Feed/search not created                                                    |
+| 8     | not_started | Offers/chat not created                                                    |
+| 9     | not_started | Moderation/admin not created                                               |
+| 10    | not_started | Push/reliability not created                                               |
+| 11    | not_started | Deployment not created                                                     |
+| 12    | not_started | Security/beta not started                                                  |
 
 ### Batch notes
 
@@ -565,6 +565,37 @@ Batch 2 completed on 2026-09-07.
   incompatible with its CommonJS import at build time, so only
   `@expo/cli > ws` is pinned to 8.18.3.
 - Next batch: Batch 3 — Database schema and migrations.
+
+Batch 3 completed on 2026-09-07.
+
+- Added Prisma 6.19 with a schema and initial PostgreSQL migration for users,
+  sessions/refresh tokens, profiles, categories, cities, ads, offers, favorites,
+  blocks, reports, moderation terms, audit logs and device tokens.
+- Added ownership fields, lifecycle statuses, timezone-aware timestamps,
+  foreign-key behavior and indexes for future feed, ownership, moderation and
+  notification queries.
+- Added idempotent Russian seed data for the eight agreed starter categories
+  and all 90 Kazakhstan cities, grouped by region. The official Bureau of
+  National Statistics count for 1 July 2026 was used as the count reference.
+- Added database constraints for unique offers, non-negative prices, self-block
+  prevention, valid report targets and cross-table triggers that prevent an ad
+  owner from offering on their own ad.
+- Added integration tests that query the real local PostgreSQL database and
+  prove the seed counts, unique-offer rule and ownership constraints.
+- Added database commands and review documentation in `docs/database.md`.
+- Verification passed: `pnpm install --frozen-lockfile`, `pnpm db:generate`,
+  `pnpm db:migrate`, `pnpm db:seed`, `pnpm db:health`, `pnpm test`, `pnpm lint`,
+  `pnpm typecheck`, `pnpm build` and `pnpm format:check`.
+- Fresh-database verification passed: `pnpm db:reset` deleted only the local
+  `doska` development schema, reapplied the checked-in migration and reseeded 8
+  categories and 90 cities. The three acceptance commands passed again after
+  the reset.
+- Manual action: review the category and city tables in `docs/database.md`.
+  Docker Desktop and the local services are currently running.
+- Known shortcut: region and city names are Russian-only for the initial beta;
+  localization and stable government territorial codes can be added later.
+- Next batch: Batch 4 — Authentication and account management. Do not start it
+  until the user explicitly says `Start Batch 4`.
 
 ## Prompt for the next ChatGPT batch
 

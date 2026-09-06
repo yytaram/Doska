@@ -12,15 +12,15 @@ transactions.
 
 ## Launch decisions
 
-| Area | Decision |
-| --- | --- |
-| Coverage | All Kazakhstan cities, represented by a maintained city list |
-| Language | Russian only |
-| Minimum age | 16 (provisional; legal review is required before public launch) |
-| Login | Email and password only |
-| Beta data | Fake/test data only |
-| Hosting | One CIS-wide deployment for testing only |
-| Currency | KZT; final budget precision will be confirmed in Batch 5 |
+| Area               | Decision                                                                                                      |
+| ------------------ | ------------------------------------------------------------------------------------------------------------- |
+| Coverage           | All Kazakhstan cities, represented by a maintained city list                                                  |
+| Language           | Russian only                                                                                                  |
+| Minimum age        | 16 (provisional; legal review is required before public launch)                                               |
+| Login              | Email and password only                                                                                       |
+| Beta data          | Fake/test data only                                                                                           |
+| Hosting            | One CIS-wide deployment for testing only                                                                      |
+| Currency           | KZT; final budget precision will be confirmed in Batch 5                                                      |
 | Initial categories | Electronics; Phones and Computers; Auto; Home and Furniture; Clothing; Children; Sports and Hobbies; Services |
 
 The one-deployment decision is an early-beta shortcut. Before any real-user

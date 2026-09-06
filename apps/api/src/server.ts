@@ -8,7 +8,10 @@ interface BuildServerOptions {
   database?: Database;
 }
 
-export function buildServer({ config, database = createDatabase(config.DATABASE_URL) }: BuildServerOptions) {
+export function buildServer({
+  config,
+  database = createDatabase(config.DATABASE_URL),
+}: BuildServerOptions) {
   const app = Fastify({ logger: true });
 
   app.get('/health', async () => ({ status: 'ok' }));
