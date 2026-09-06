@@ -11,7 +11,7 @@ apps/api      Fastify API
 apps/admin    Next.js moderation/admin application
 packages/shared  Shared types and constants
 packages/config  Shared configuration files
-infra          Local infrastructure (added in Batch 2)
+infra          Local PostgreSQL, Redis and MinIO infrastructure
 ```
 
 ## Prerequisites
@@ -49,6 +49,18 @@ pnpm mobile:android
 pnpm api:dev
 pnpm admin:dev
 ```
+
+## Local services
+
+With Docker Desktop running:
+
+```bash
+docker compose up -d
+pnpm db:health
+```
+
+See [local development services](docs/local-development.md) for ports, health
+checks, logs, shutdown and reset instructions.
 
 `pnpm mobile:ios` opens an iOS simulator only on macOS. On Windows, use Expo Go
 on an iPhone or use a cloud build later.

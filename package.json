@@ -12,6 +12,10 @@
     "mobile:ios": "pnpm --filter @doska/mobile ios",
     "api:dev": "pnpm --filter @doska/api dev",
     "admin:dev": "pnpm --filter @doska/admin dev",
+    "db:health": "pnpm --filter @doska/api db:health",
+    "services:up": "docker compose up -d",
+    "services:down": "docker compose down",
+    "services:logs": "docker compose logs -f",
     "format": "prettier --write .",
     "format:check": "prettier --check ."
   },

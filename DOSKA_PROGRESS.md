@@ -481,7 +481,7 @@ register → create ad → find ad → send offer → chat → close ad → repo
 ### Current status
 
 - Overall status: `in_progress`
-- Current batch: `Batch 2`
+- Current batch: `Batch 3`
 - Last updated: `2026-09-07`
 
 ### Completed work
@@ -490,7 +490,7 @@ register → create ad → find ad → send offer → chat → close ad → repo
 |---|---|---|
 | 0 | complete | Product brief, MVP boundaries and end-to-end flow documented |
 | 1 | complete | pnpm monorepo foundation, runnable applications and shared tooling created |
-| 2 | not_started | Local infrastructure not created |
+| 2 | complete | Local PostgreSQL, Redis and MinIO services and API health checks created |
 | 3 | not_started | Database schema not created |
 | 4 | not_started | Authentication not created |
 | 5 | not_started | Ads API not created |
@@ -538,6 +538,33 @@ Batch 1 completed on 2026-09-07.
   current npm registry state. Revisit this dependency override in a later
   maintenance update.
 - Next batch: Batch 2 — Local infrastructure.
+
+Batch 2 completed on 2026-09-07.
+
+- Added Docker Compose services for PostgreSQL 17, Redis 7.4 and MinIO with
+  health checks, restart policies and persistent named volumes.
+- Bound every published container port to `127.0.0.1`; the services are not
+  exposed on public network interfaces.
+- Added Zod-validated API configuration, a PostgreSQL connection wrapper,
+  `GET /health/database` and the `pnpm db:health` command.
+- Added development environment templates and documented start, stop, log and
+  data-reset commands in `docs/local-development.md`.
+- Added `*.tsbuildinfo` to `.gitignore` and stopped tracking the generated
+  Next.js TypeScript cache file; the local cache remains available.
+- Verification passed: `docker compose config --quiet`, `docker compose up -d`,
+  `docker compose ps`, `pnpm db:health`, `pnpm lint`, `pnpm typecheck`,
+  `pnpm build`, and live requests to `/health` and `/health/database`.
+- Running services: PostgreSQL on `127.0.0.1:5432`, Redis on
+  `127.0.0.1:6379`, MinIO API on `127.0.0.1:9000`, and MinIO console on
+  `127.0.0.1:9002`.
+- Manual action: none required. Leave Docker Desktop running when working on
+  the API; `docker compose down` stops the local services without deleting data.
+- Known local exception: port 9001 was already occupied, so the MinIO console
+  uses host port 9002. Its S3 API remains on port 9000.
+- Dependency workaround: Expo CLI's broad `ws` range resolved to a version
+  incompatible with its CommonJS import at build time, so only
+  `@expo/cli > ws` is pinned to 8.18.3.
+- Next batch: Batch 3 — Database schema and migrations.
 
 ## Prompt for the next ChatGPT batch
 
