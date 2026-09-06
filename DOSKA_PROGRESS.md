@@ -481,7 +481,7 @@ register → create ad → find ad → send offer → chat → close ad → repo
 ### Current status
 
 - Overall status: `in_progress`
-- Current batch: `Batch 4`
+- Current batch: `Batch 5`
 - Last updated: `2026-09-07`
 
 ### Completed work
@@ -492,7 +492,7 @@ register → create ad → find ad → send offer → chat → close ad → repo
 | 1     | complete    | pnpm monorepo foundation, runnable applications and shared tooling created |
 | 2     | complete    | Local PostgreSQL, Redis and MinIO services and API health checks created   |
 | 3     | complete    | Prisma schema, migration, reference seeds and database constraints created |
-| 4     | not_started | Authentication not created                                                 |
+| 4     | complete    | Secure email authentication and account lifecycle API created              |
 | 5     | not_started | Ads API not created                                                        |
 | 6     | not_started | Mobile UI not created                                                      |
 | 7     | not_started | Feed/search not created                                                    |
@@ -596,6 +596,43 @@ Batch 3 completed on 2026-09-07.
   localization and stable government territorial codes can be added later.
 - Next batch: Batch 4 — Authentication and account management. Do not start it
   until the user explicitly says `Start Batch 4`.
+
+Batch 4 completed on 2026-09-07.
+
+- Implemented email/password registration and login with normalized email,
+  Russian validation responses, a required 16+ beta acknowledgement and profile
+  creation using an active Kazakhstan city.
+- Added Argon2id password hashing using the OWASP minimum memory-hard settings.
+- Added signed 15-minute access tokens and random opaque 30-day refresh tokens.
+  Only refresh-token hashes are stored; rotation atomically revokes the previous
+  token and rejects reuse.
+- Added immediate access revocation through session and account-version checks,
+  plus logout, current-user, profile update and password-change endpoints.
+- Added per-IP rate limits for registration, login and refresh. API logging
+  redacts passwords, refresh tokens and authorization headers.
+- Added transactional account deletion: sessions, device tokens, profile,
+  favorites and blocks are removed; owned ads and sent offers are closed or
+  withdrawn and stripped of user content; email and password are anonymized;
+  minimal relational and audit records remain.
+- Added a public active-city reference endpoint needed by registration and a
+  documented fake-data beta retention policy in `docs/authentication.md`.
+- Added migration `20260906175608_add_auth_version` so password changes, logout,
+  suspension and deletion can invalidate access tokens immediately.
+- Integration verification covers the complete account lifecycle, anonymous
+  authorization rejection, Argon2 storage, hashed refresh-token storage,
+  one-time token rotation, replay rejection, logout, password change, deleted
+  accounts, ad anonymization, audit events, log redaction and login throttling.
+- Commands passed: `pnpm install --frozen-lockfile`, `pnpm db:migrate`,
+  `pnpm test`, `pnpm lint`, `pnpm typecheck`, `pnpm build`,
+  `pnpm format:check` and Prisma migration status.
+- Manual action: none required. Tests use disposable fake accounts and remove
+  them afterward. Continue to avoid real credentials or real personal data.
+- Known limitation: the rate limiter is in process memory for the local/single
+  API instance. A shared Redis-backed limiter is required before horizontally
+  scaling the API. The deletion policy still requires legal review before real
+  users are accepted.
+- Next batch: Batch 5 — Ads API. Do not start it until the user explicitly says
+  `Start Batch 5`.
 
 ## Prompt for the next ChatGPT batch
 

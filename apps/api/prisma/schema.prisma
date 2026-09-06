@@ -76,6 +76,7 @@ model User {
   id           String     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   email        String     @unique @db.VarChar(320)
   passwordHash String     @map("password_hash") @db.VarChar(255)
+  authVersion  Int        @default(0) @map("auth_version")
   role         UserRole   @default(USER)
   status       UserStatus @default(ACTIVE)
   deletedAt    DateTime?  @map("deleted_at") @db.Timestamptz(3)

@@ -1,18 +1,63 @@
-import Fastify from 'fastify';
+import fastifyJwt from '@fastify/jwt';
+import fastifyRateLimit from '@fastify/rate-limit';
+import { PrismaClient } from '@prisma/client';
+import Fastify, { type FastifyServerOptions } from 'fastify';
 
+import { registerAuthRoutes } from './auth/routes.js';
+import './auth/types.js';
 import type { AppConfig } from './config.js';
 import { createDatabase, type Database } from './database.js';
+import { sendError } from './http-errors.js';
+import { registerReferenceRoutes } from './reference/routes.js';
 
 interface BuildServerOptions {
   config: AppConfig;
   database?: Database;
+  logger?: FastifyServerOptions['logger'];
+  prisma?: PrismaClient;
 }
 
 export function buildServer({
   config,
   database = createDatabase(config.DATABASE_URL),
+  logger,
+  prisma = new PrismaClient(),
 }: BuildServerOptions) {
-  const app = Fastify({ logger: true });
+  const app = Fastify({
+    logger:
+      logger ??
+      ({
+        redact: {
+          paths: [
+            'req.headers.authorization',
+            'req.body.password',
+            'req.body.currentPassword',
+            'req.body.newPassword',
+            'req.body.refreshToken',
+            'res.headers["set-cookie"]',
+          ],
+          censor: '[REDACTED]',
+        },
+      } as const),
+  });
+
+  app.register(fastifyJwt, {
+    secret: config.JWT_SECRET,
+    sign: {
+      algorithm: 'HS256',
+      expiresIn: `${config.JWT_ACCESS_TTL_SECONDS}s`,
+      iss: 'doska-api',
+      aud: 'doska-mobile',
+    },
+    verify: {
+      algorithms: ['HS256'],
+      allowedIss: 'doska-api',
+      allowedAud: 'doska-mobile',
+    },
+  });
+  app.register(fastifyRateLimit, { global: false });
+  app.register(async (authApp) => registerAuthRoutes(authApp, prisma, config));
+  app.register(async (referenceApp) => registerReferenceRoutes(referenceApp, prisma));
 
   app.get('/health', async () => ({ status: 'ok' }));
 
@@ -27,7 +72,28 @@ export function buildServer({
   });
 
   app.addHook('onClose', async () => {
-    await database.close();
+    await Promise.all([database.close(), prisma.$disconnect()]);
+  });
+
+  app.setErrorHandler((error, request, reply) => {
+    const statusCode =
+      typeof error === 'object' &&
+      error !== null &&
+      'statusCode' in error &&
+      typeof error.statusCode === 'number'
+        ? error.statusCode
+        : undefined;
+
+    if (statusCode === 429) {
+      return sendError(reply, 429, 'RATE_LIMITED', 'Слишком много попыток. Повторите позже.');
+    }
+
+    if (statusCode && statusCode >= 400 && statusCode < 500) {
+      return sendError(reply, statusCode, 'INVALID_REQUEST', 'Некорректный запрос.');
+    }
+
+    request.log.error({ error }, 'Unhandled request error');
+    return sendError(reply, 500, 'INTERNAL_ERROR', 'Внутренняя ошибка сервера.');
   });
 
   return app;

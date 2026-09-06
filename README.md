@@ -68,5 +68,8 @@ checks, logs, shutdown and reset instructions.
 See [database schema and reference data](docs/database.md) for migrations,
 database reset instructions, starter categories and the 90-city seed catalog.
 
+See [authentication and account lifecycle](docs/authentication.md) for the API
+routes, token model, security rules and beta account-deletion policy.
+
 `pnpm mobile:ios` opens an iOS simulator only on macOS. On Windows, use Expo Go
 on an iPhone or use a cloud build later.
