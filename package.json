@@ -1,0 +1,26 @@
+{
+  "name": "doska",
+  "version": "0.1.0",
+  "private": true,
+  "packageManager": "pnpm@11.23.0",
+  "scripts": {
+    "build": "pnpm --recursive --if-present run build",
+    "lint": "eslint apps packages --max-warnings=0",
+    "typecheck": "pnpm --recursive --if-present run typecheck",
+    "mobile:start": "pnpm --filter @doska/mobile start",
+    "mobile:android": "pnpm --filter @doska/mobile android",
+    "mobile:ios": "pnpm --filter @doska/mobile ios",
+    "api:dev": "pnpm --filter @doska/api dev",
+    "admin:dev": "pnpm --filter @doska/admin dev",
+    "format": "prettier --write .",
+    "format:check": "prettier --check ."
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.38.0",
+    "eslint": "^9.38.0",
+    "globals": "^16.5.0",
+    "prettier": "^3.6.2",
+    "typescript": "^5.9.3",
+    "typescript-eslint": "^8.46.0"
+  }
+}

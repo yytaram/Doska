@@ -1,0 +1,29 @@
+node_modules/
+.pnpm-store/
+.turbo/
+dist/
+build/
+.next/
+.expo/
+coverage/
+*.log
+
+# Local configuration and secrets
+.env
+.env.*
+!.env.example
+!**/.env.example
+
+# Native/mobile build output
+android/
+ios/
+*.keystore
+*.p8
+*.mobileprovision
+
+# Operating-system and editor files
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/*
+!.vscode/extensions.json

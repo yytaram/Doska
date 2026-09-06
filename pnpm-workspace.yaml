@@ -1,0 +1,8 @@
+packages:
+  - "apps/*"
+  - "packages/*"
+
+overrides:
+  browserslist: 4.28.8
+allowBuilds:
+  esbuild: true

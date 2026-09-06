@@ -1,0 +1,17 @@
+{
+  "expo": {
+    "name": "Doska",
+    "slug": "doska",
+    "version": "0.1.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "light",
+    "scheme": "doska",
+    "android": {
+      "package": "com.doska.app"
+    },
+    "ios": {
+      "bundleIdentifier": "com.doska.app"
+    },
+    "plugins": ["expo-router"]
+  }
+}
