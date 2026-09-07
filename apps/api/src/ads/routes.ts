@@ -43,6 +43,14 @@ const statusToDatabase: Record<AdStatusInput, AdStatus> = {
 
 class AdStateChangedError extends Error {}
 
+function toFullTextQuery(value: string) {
+  return value
+    .toLocaleLowerCase('ru')
+    .match(/[\p{L}\p{N}]+/gu)
+    ?.map((term) => `${term}:*`)
+    .join(' & ');
+}
+
 function notFound(reply: FastifyReply) {
   return sendError(reply, 404, 'AD_NOT_FOUND', 'Объявление не найдено.');
 }
@@ -124,13 +132,44 @@ export function registerAdRoutes(app: FastifyInstance, prisma: PrismaClient) {
       if (cursor === null) return;
 
       const now = new Date();
+      const search = query.search ? toFullTextQuery(query.search) : undefined;
+      const budgetFilter =
+        query.budgetMin !== undefined || query.budgetMax !== undefined
+          ? {
+              budget: {
+                not: null,
+                ...(query.budgetMin !== undefined ? { gte: query.budgetMin } : {}),
+                ...(query.budgetMax !== undefined ? { lte: query.budgetMax } : {}),
+              },
+            }
+          : {};
       const where: Prisma.AdWhereInput = {
         status: AdStatus.ACTIVE,
         OR: [{ expiresAt: null }, { expiresAt: { gt: now } }],
+        ...(search
+          ? {
+              AND: [
+                ...(cursor ? [cursorFilter(cursor)] : []),
+                {
+                  OR: [{ title: { search } }, { description: { search } }],
+                },
+              ],
+            }
+          : cursor
+            ? { AND: [cursorFilter(cursor)] }
+            : {}),
         ...(query.categoryId ? { categoryId: query.categoryId } : {}),
         ...(query.cityId ? { cityId: query.cityId } : {}),
         ...(query.condition ? { condition: conditionToDatabase[query.condition] } : {}),
-        ...(cursor ? { AND: [cursorFilter(cursor)] } : {}),
+        ...budgetFilter,
+        ...(query.publishedAfter || query.publishedBefore
+          ? {
+              publishedAt: {
+                ...(query.publishedAfter ? { gte: query.publishedAfter } : {}),
+                ...(query.publishedBefore ? { lte: query.publishedBefore } : {}),
+              },
+            }
+          : {}),
       };
       const ads = await prisma.ad.findMany({
         where,

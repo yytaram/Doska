@@ -83,11 +83,14 @@ and ID. The default page contains 20 ads and the maximum is 50. A response is:
 ```
 
 Clients pass `nextCursor` back unchanged. They must not construct it or use page
-numbers. Public filters currently support category, city and condition; Batch 7
-will add search, budget and date filters.
+numbers. The public feed supports `search`, `categoryId`, `cityId`, `condition`,
+`budgetMin`, `budgetMax`, `publishedAfter` and `publishedBefore`. Search uses
+PostgreSQL full-text matching across the Russian title and description and
+supports word prefixes. Budget and date range endpoints reject inverted ranges.
 
-The migration adds matching PostgreSQL indexes for public status pagination,
-owner pagination, owner-and-status pagination, and category/city feed queries.
+The migrations add matching PostgreSQL indexes for public status pagination,
+owner pagination, owner-and-status pagination, category/city feed queries and a
+GIN full-text index for title plus description.
 
 ## Rate limits
 

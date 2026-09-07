@@ -151,6 +151,10 @@ test('ads API enforces ownership, public states and keyset cursor pagination', a
       ),
     );
     await prisma.ad.update({
+      where: { id: third.id },
+      data: { budget: 500000, condition: 'NEW' },
+    });
+    await prisma.ad.update({
       where: { id: expired.id },
       data: {
         status: 'ACTIVE',
@@ -182,6 +186,39 @@ test('ads API enforces ownership, public states and keyset cursor pagination', a
     assert.deepEqual(new Set(pagedIds), new Set([first.id, second.id, third.id]));
     assert.ok(!pagedIds.includes(privateDraft.id));
     assert.ok(!pagedIds.includes(expired.id));
+
+    const searched = await app.inject({ method: 'GET', url: '/ads?search=третий%20телефон' });
+    assert.equal(searched.statusCode, 200);
+    assert.deepEqual(
+      searched.json<AdPage>().items.map(({ id }) => id),
+      [third.id],
+    );
+
+    const budgetAndCondition = await app.inject({
+      method: 'GET',
+      url: '/ads?budgetMin=400000&budgetMax=600000&condition=new',
+    });
+    assert.equal(budgetAndCondition.statusCode, 200);
+    assert.deepEqual(
+      budgetAndCondition.json<AdPage>().items.map(({ id }) => id),
+      [third.id],
+    );
+
+    const dateFiltered = await app.inject({
+      method: 'GET',
+      url: `/ads?publishedAfter=${encodeURIComponent(new Date(baseTime + 1_500).toISOString())}&publishedBefore=${encodeURIComponent(new Date(baseTime + 2_500).toISOString())}`,
+    });
+    assert.equal(dateFiltered.statusCode, 200);
+    assert.deepEqual(
+      dateFiltered.json<AdPage>().items.map(({ id }) => id),
+      [third.id],
+    );
+
+    const invalidBudgetRange = await app.inject({
+      method: 'GET',
+      url: '/ads?budgetMin=5000&budgetMax=1000',
+    });
+    assert.equal(invalidBudgetRange.statusCode, 400);
 
     const activeDetail = await app.inject({ method: 'GET', url: `/ads/${first.id}` });
     assert.equal(activeDetail.statusCode, 200);
@@ -278,6 +315,7 @@ test('ads API enforces ownership, public states and keyset cursor pagination', a
     assert.ok(indexNames.has('ads_status_created_at_id_idx'));
     assert.ok(indexNames.has('ads_owner_id_created_at_id_idx'));
     assert.ok(indexNames.has('ads_owner_id_status_created_at_id_idx'));
+    assert.ok(indexNames.has('ads_full_text_search_idx'));
   } finally {
     if (userIds.length > 0) {
       await prisma.auditLog.deleteMany({ where: { actorId: { in: userIds } } });

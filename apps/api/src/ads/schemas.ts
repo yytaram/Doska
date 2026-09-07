@@ -50,12 +50,30 @@ const paginationFields = {
   limit: z.coerce.number().int().min(1).max(50).default(20),
 };
 
-export const publicAdsQuerySchema = z.object({
-  ...paginationFields,
-  categoryId: categoryId.optional(),
-  cityId: cityId.optional(),
-  condition: condition.optional(),
-});
+export const publicAdsQuerySchema = z
+  .object({
+    ...paginationFields,
+    search: z.string().trim().min(2).max(100).optional(),
+    categoryId: categoryId.optional(),
+    cityId: cityId.optional(),
+    condition: condition.optional(),
+    budgetMin: z.coerce.number().int().min(0).max(999_999_999_999).optional(),
+    budgetMax: z.coerce.number().int().min(0).max(999_999_999_999).optional(),
+    publishedAfter: z.coerce.date().optional(),
+    publishedBefore: z.coerce.date().optional(),
+  })
+  .refine(
+    ({ budgetMax, budgetMin }) =>
+      budgetMax === undefined || budgetMin === undefined || budgetMin <= budgetMax,
+    { message: 'minimum budget must not exceed maximum budget' },
+  )
+  .refine(
+    ({ publishedAfter, publishedBefore }) =>
+      publishedAfter === undefined ||
+      publishedBefore === undefined ||
+      publishedAfter <= publishedBefore,
+    { message: 'start date must not exceed end date' },
+  );
 
 export const myAdsQuerySchema = z.object({
   ...paginationFields,

@@ -481,8 +481,8 @@ register → create ad → find ad → send offer → chat → close ad → repo
 ### Current status
 
 - Overall status: `in_progress`
-- Current batch: `Batch 7`
-- Last updated: `2026-09-07`
+- Current batch: `Batch 8 (not started)`
+- Last updated: `2026-09-08`
 
 ### Completed work
 
@@ -495,7 +495,7 @@ register → create ad → find ad → send offer → chat → close ad → repo
 | 4     | complete    | Secure email authentication and account lifecycle API created              |
 | 5     | complete    | Secure ads lifecycle API, public feed and cursor pagination created        |
 | 6     | complete    | Russian mobile authentication, session handling and profile UI created     |
-| 7     | not_started | Feed/search not created                                                    |
+| 7     | complete    | Feed, full-text search, filters and ad-management UI created               |
 | 8     | not_started | Offers/chat not created                                                    |
 | 9     | not_started | Moderation/admin not created                                               |
 | 10    | not_started | Push/reliability not created                                               |
@@ -717,6 +717,32 @@ Post-Batch 6 connection fix completed on 2026-09-07.
 - Confirmed mobile type checking, linting, formatting and the Android/iOS/web
   export pass after the fix. Expo Doctor reports 21/21 checks passing after the
   SDK 57 upgrade.
+
+Batch 7 completed on 2026-09-08.
+
+- Built the signed-in home feed, public ad details and reusable cards with
+  Russian loading, empty and error states.
+- Added category, city, whole-tenge budget, condition and publication-date
+  filters. The client keeps cursor pages separate and loads more only on demand.
+- Added PostgreSQL full-text title-and-description search with word-prefix
+  matching and a checked-in GIN index migration.
+- Built reusable create/edit forms, owner ad listing and a confirmed close
+  action. Draft and moderation states stay private and the server remains the
+  authority after mutations.
+- Added deterministic fake development data: three active public ads, including
+  “Куплю iPhone 15 Pro 256 ГБ”, while retaining all 90 cities and eight
+  categories.
+- Expanded API integration coverage for full-text search, combined budget and
+  condition filters, publication dates, invalid ranges and the search index.
+- Verification passed: database migration deployment, seed, all five API test
+  suites, workspace lint and TypeScript checks. Formatting was applied before
+  the final production build.
+- Manual action: run the API and mobile web app, sign in with a disposable test
+  account, review the seeded feed, create a draft, edit it and close it from “Мои
+  объявления”. New moderation submissions will not enter the public feed until
+  Batch 9 adds moderator approval.
+- Next batch: Batch 8 — Offers and chat. Do not start it until the user
+  explicitly says `Start Batch 8`.
 
 ## Prompt for the next ChatGPT batch
 

@@ -7,6 +7,49 @@ export interface City {
   slug: string;
 }
 
+export interface Category {
+  id: string;
+  nameRu: string;
+  slug: string;
+}
+
+export type ItemCondition = 'any' | 'new' | 'like_new' | 'good' | 'fair' | 'for_parts';
+export type AdStatus =
+  'draft' | 'moderation' | 'active' | 'paused' | 'closed' | 'rejected' | 'expired';
+
+export interface Ad {
+  budget: number | null;
+  category: Category;
+  city: City;
+  closedAt: string | null;
+  condition: ItemCondition;
+  createdAt: string;
+  currency: 'KZT';
+  description: string;
+  expiresAt: string | null;
+  id: string;
+  owner: { id: string; profile: { nickname: string } | null };
+  publishedAt: string | null;
+  status: AdStatus;
+  title: string;
+  updatedAt: string;
+}
+
+export interface AdPage {
+  items: Ad[];
+  nextCursor: string | null;
+}
+
+export interface AdInput {
+  budget: number | null;
+  categoryId: string;
+  cityId: string;
+  condition: ItemCondition;
+  description: string;
+  status: 'draft' | 'moderation';
+  title: string;
+}
+
 export interface UserProfile {
   city: City;
   language: 'ru';
@@ -90,6 +133,67 @@ async function request<T>(
 
 export function getCities() {
   return request<{ cities: City[] }>('/reference/cities').then(({ cities }) => cities);
+}
+
+export function getCategories() {
+  return request<{ categories: Category[] }>('/reference/categories').then(
+    ({ categories }) => categories,
+  );
+}
+
+export function getAds(
+  filters: {
+    budgetMax?: number;
+    budgetMin?: number;
+    categoryId?: string;
+    cityId?: string;
+    condition?: ItemCondition;
+    cursor?: string;
+    publishedAfter?: string;
+    search?: string;
+  } = {},
+) {
+  const query = new URLSearchParams();
+  Object.entries(filters).forEach(([key, value]) => {
+    if (value !== undefined && value !== '') query.set(key, String(value));
+  });
+  const suffix = query.size > 0 ? `?${query.toString()}` : '';
+  return request<AdPage>(`/ads${suffix}`);
+}
+
+export function getAd(id: string) {
+  return request<{ ad: Ad }>(`/ads/${id}`).then(({ ad }) => ad);
+}
+
+export function getMyAds(accessToken: string, status?: AdStatus) {
+  const suffix = status ? `?status=${status}` : '';
+  return request<AdPage>(`/account/ads${suffix}`, {}, accessToken);
+}
+
+export function getMyAd(accessToken: string, id: string) {
+  return request<{ ad: Ad }>(`/account/ads/${id}`, {}, accessToken).then(({ ad }) => ad);
+}
+
+export function createAd(accessToken: string, input: AdInput) {
+  return request<{ ad: Ad }>(
+    '/ads',
+    { body: JSON.stringify(input), method: 'POST' },
+    accessToken,
+  ).then(({ ad }) => ad);
+}
+
+export function updateAd(accessToken: string, id: string, input: Partial<AdInput>) {
+  return request<{ ad: Ad }>(
+    `/ads/${id}`,
+    { body: JSON.stringify(input), method: 'PATCH' },
+    accessToken,
+  ).then(({ ad }) => ad);
+}
+
+export function closeAd(accessToken: string, id: string) {
+  return request<{ ad: Ad }>(`/ads/${id}/close`, { method: 'POST' }, accessToken).then(
+    ({ ad }) => ad,
+  );
 }
 
 export function login(input: { email: string; password: string }) {
