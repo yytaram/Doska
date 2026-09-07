@@ -74,5 +74,8 @@ routes, token model, security rules and beta account-deletion policy.
 See [ads API](docs/ads-api.md) for validation limits, status transitions,
 ownership rules, filtering and cursor pagination.
 
+See [mobile app local development](docs/mobile-development.md) for Android
+emulator, iPhone/Expo Go and API-address setup.
+
 `pnpm mobile:ios` opens an iOS simulator only on macOS. On Windows, use Expo Go
 on an iPhone or use a cloud build later.

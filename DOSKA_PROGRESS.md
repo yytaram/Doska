@@ -481,7 +481,7 @@ register → create ad → find ad → send offer → chat → close ad → repo
 ### Current status
 
 - Overall status: `in_progress`
-- Current batch: `Batch 6`
+- Current batch: `Batch 7`
 - Last updated: `2026-09-07`
 
 ### Completed work
@@ -494,7 +494,7 @@ register → create ad → find ad → send offer → chat → close ad → repo
 | 3     | complete    | Prisma schema, migration, reference seeds and database constraints created |
 | 4     | complete    | Secure email authentication and account lifecycle API created              |
 | 5     | complete    | Secure ads lifecycle API, public feed and cursor pagination created        |
-| 6     | not_started | Mobile UI not created                                                      |
+| 6     | complete    | Russian mobile authentication, session handling and profile UI created     |
 | 7     | not_started | Feed/search not created                                                    |
 | 8     | not_started | Offers/chat not created                                                    |
 | 9     | not_started | Moderation/admin not created                                               |
@@ -668,6 +668,38 @@ Batch 5 completed on 2026-09-07.
   introduced.
 - Next batch: Batch 6 — Mobile UI foundation and authentication screens. Do not
   start it until the user explicitly says `Start Batch 6`.
+
+Batch 6 completed on 2026-09-07.
+
+- Replaced the mobile placeholder with Expo Router navigation for onboarding,
+  registration, login, signed-in home and editable profile screens. The layout
+  uses safe areas and native controls compatible with Android and iOS.
+- Added a small Russian design system with shared colors, spacing, buttons,
+  fields, notices, loading states and an accessible city-search picker.
+- Added React Hook Form and Zod client validation, TanStack Query caching for
+  city data, and Zustand session state. Registration captures email, nickname,
+  city, password and the required 16+ test-beta acknowledgement.
+- Added a typed API client connected to the existing authentication and profile
+  endpoints. Sessions are restored using a refreshed token when necessary;
+  Android/iOS tokens are stored with Expo SecureStore. The local web build uses
+  browser storage only for development.
+- Added `docs/mobile-development.md` with the exact local API address needed
+  for web/iOS simulator, Android emulator and Expo Go on a physical phone.
+- Added the Expo SecureStore plugin and compatible mobile dependencies.
+- Verification passed: `pnpm mobile:start -- --offline` started Metro at
+  `http://localhost:8081`; mobile type checking, linting and production export
+  for Android, iOS and web all passed. Full workspace verification also passed
+  at batch completion.
+- Manual action: copy `apps/mobile/.env.example` to `apps/mobile/.env`, choose
+  the API address in `docs/mobile-development.md`, then run `pnpm api:dev` and
+  `pnpm mobile:start`. Test registration and login with a disposable email and
+  password in Expo Go or the Android emulator.
+- Known limitation: no production branding, logo or final localized wording is
+  selected yet. The home screen is intentionally a signed-in placeholder until
+  the feed and ad-creation UI in Batch 7. Physical-device testing requires the
+  computer and phone to be on the same Wi-Fi network.
+- Next batch: Batch 7 — Feed, search and ad creation UI. Do not start it until
+  the user explicitly says `Start Batch 7`.
 
 ## Prompt for the next ChatGPT batch
 

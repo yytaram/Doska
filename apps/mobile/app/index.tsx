@@ -1,31 +1,19 @@
-import { StyleSheet, Text, View } from 'react-native';
+import { Redirect } from 'expo-router';
 
-export default function HomeScreen() {
-  return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Doska</Text>
-      <Text style={styles.subtitle}>Покупайте то, что вам нужно.</Text>
-    </View>
-  );
+import { CenteredScreen } from '../src/components/screen';
+import { LoadingView } from '../src/components/ui';
+import { useAuthStore } from '../src/auth/store';
+
+export default function IndexScreen() {
+  const status = useAuthStore((state) => state.status);
+
+  if (status === 'loading') {
+    return (
+      <CenteredScreen>
+        <LoadingView />
+      </CenteredScreen>
+    );
+  }
+
+  return <Redirect href={status === 'signedIn' ? '/home' : '/welcome'} />;
 }
-
-const styles = StyleSheet.create({
-  container: {
-    alignItems: 'center',
-    backgroundColor: '#F8FAFC',
-    flex: 1,
-    justifyContent: 'center',
-    padding: 24,
-  },
-  subtitle: {
-    color: '#475569',
-    fontSize: 18,
-    textAlign: 'center',
-  },
-  title: {
-    color: '#0F172A',
-    fontSize: 36,
-    fontWeight: '700',
-    marginBottom: 8,
-  },
-});
