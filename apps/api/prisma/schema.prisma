@@ -191,9 +191,10 @@ model Ad {
   favorites Favorite[]
   reports   Report[]
 
-  @@index([ownerId, status, createdAt])
-  @@index([status, createdAt])
-  @@index([categoryId, cityId, status, createdAt])
+  @@index([ownerId, createdAt, id])
+  @@index([ownerId, status, createdAt, id])
+  @@index([status, createdAt, id])
+  @@index([categoryId, cityId, status, createdAt, id])
   @@index([expiresAt])
   @@map("ads")
 }

@@ -1,10 +1,11 @@
 import { randomUUID } from 'node:crypto';
 
 import { Prisma, PrismaClient } from '@prisma/client';
-import type { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify';
+import type { FastifyInstance, FastifyReply } from 'fastify';
 
 import type { AppConfig } from '../config.js';
 import { parseBody, sendError } from '../http-errors.js';
+import { createAuthenticate, requireAccount } from './guard.js';
 import { hashPassword, verifyPassword } from './passwords.js';
 import {
   changePasswordSchema,
@@ -20,7 +21,6 @@ import {
   hashRefreshToken,
   refreshTokenMatches,
 } from './tokens.js';
-import type { AccessTokenPayload, AuthAccount } from './types.js';
 
 const publicUserSelect = {
   id: true,
@@ -54,14 +54,6 @@ function unauthorized(reply: FastifyReply) {
 
 function invalidCredentials(reply: FastifyReply) {
   return sendError(reply, 401, 'INVALID_CREDENTIALS', 'Неверный email или пароль.');
-}
-
-function requireAccount(request: FastifyRequest): AuthAccount {
-  if (!request.authAccount) {
-    throw new Error('Authenticated route was reached without an account.');
-  }
-
-  return request.authAccount;
 }
 
 async function loadPublicUser(prisma: PrismaClient, userId: string) {
@@ -108,54 +100,8 @@ export async function registerAuthRoutes(
   prisma: PrismaClient,
   config: AppConfig,
 ) {
-  app.decorateRequest('authAccount', null);
-
   const dummyPasswordHash = await hashPassword(`dummy-${randomUUID()}-password`);
-
-  const authenticate = async (request: FastifyRequest, reply: FastifyReply) => {
-    let token: AccessTokenPayload;
-
-    try {
-      token = await request.jwtVerify<AccessTokenPayload>();
-    } catch {
-      return unauthorized(reply);
-    }
-
-    const session = await prisma.session.findUnique({
-      where: { id: token.sid },
-      select: {
-        userId: true,
-        revokedAt: true,
-        expiresAt: true,
-        user: {
-          select: {
-            id: true,
-            email: true,
-            status: true,
-            authVersion: true,
-          },
-        },
-      },
-    });
-
-    if (
-      !session ||
-      session.userId !== token.sub ||
-      session.revokedAt ||
-      session.expiresAt <= new Date() ||
-      session.user.status !== 'ACTIVE' ||
-      session.user.authVersion !== token.ver
-    ) {
-      return unauthorized(reply);
-    }
-
-    request.authAccount = {
-      id: session.user.id,
-      email: session.user.email,
-      authVersion: session.user.authVersion,
-      sessionId: token.sid,
-    };
-  };
+  const authenticate = createAuthenticate(prisma);
 
   app.post(
     '/auth/register',

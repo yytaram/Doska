@@ -71,5 +71,8 @@ database reset instructions, starter categories and the 90-city seed catalog.
 See [authentication and account lifecycle](docs/authentication.md) for the API
 routes, token model, security rules and beta account-deletion policy.
 
+See [ads API](docs/ads-api.md) for validation limits, status transitions,
+ownership rules, filtering and cursor pagination.
+
 `pnpm mobile:ios` opens an iOS simulator only on macOS. On Windows, use Expo Go
 on an iPhone or use a cloud build later.

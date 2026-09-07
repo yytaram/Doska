@@ -481,7 +481,7 @@ register → create ad → find ad → send offer → chat → close ad → repo
 ### Current status
 
 - Overall status: `in_progress`
-- Current batch: `Batch 5`
+- Current batch: `Batch 6`
 - Last updated: `2026-09-07`
 
 ### Completed work
@@ -493,7 +493,7 @@ register → create ad → find ad → send offer → chat → close ad → repo
 | 2     | complete    | Local PostgreSQL, Redis and MinIO services and API health checks created   |
 | 3     | complete    | Prisma schema, migration, reference seeds and database constraints created |
 | 4     | complete    | Secure email authentication and account lifecycle API created              |
-| 5     | not_started | Ads API not created                                                        |
+| 5     | complete    | Secure ads lifecycle API, public feed and cursor pagination created        |
 | 6     | not_started | Mobile UI not created                                                      |
 | 7     | not_started | Feed/search not created                                                    |
 | 8     | not_started | Offers/chat not created                                                    |
@@ -633,6 +633,41 @@ Batch 4 completed on 2026-09-07.
   users are accepted.
 - Next batch: Batch 5 — Ads API. Do not start it until the user explicitly says
   `Start Batch 5`.
+
+Batch 5 completed on 2026-09-07.
+
+- Implemented authenticated ad creation, private owner detail/list, editing,
+  pausing, resuming and idempotent closing, plus a public feed and public ad
+  detail endpoint.
+- Added the complete ad lifecycle states: `draft`, `moderation`, `active`,
+  `paused`, `closed`, `rejected` and `expired`. Public endpoints expose only
+  active, unexpired ads; moderation activation/rejection remains an admin task
+  for Batch 9.
+- Added Zod validation for Russian title and description limits, whole-tenge
+  KZT budgets, condition, active category and active Kazakhstan city. Currency
+  is controlled by the server and cannot be changed by clients.
+- Added opaque keyset cursor pagination and compound PostgreSQL indexes for the
+  public feed and owner lists. Added public active-category reference data for
+  the future mobile forms.
+- Added ownership checks that return the same not-found response for missing and
+  non-owned ads, mutation rate limits, atomic lifecycle transitions and audit
+  events for ad changes.
+- Integration tests cover anonymous access, invalid budgets, owner/non-owner
+  authorization, public status filtering, expiration filtering, pagination,
+  editing, pausing, resuming, closing, private status filtering and database
+  indexes.
+- Commands passed: Prisma migration, API type checking and all API integration
+  tests. Full workspace lint, type checking, tests, build and formatting were
+  also run at batch completion.
+- Manual action: review the validation limits and Russian wording in
+  `docs/ads-api.md`. Confirm that whole-tenge integer budgets are acceptable;
+  this is the recommended initial KZT representation.
+- Known limitations: publication and rejection need the moderation workflow in
+  Batch 9; automatic transition to `expired` needs a later background job. The
+  local rate limiter remains process-local until the shared Redis limiter is
+  introduced.
+- Next batch: Batch 6 — Mobile UI foundation and authentication screens. Do not
+  start it until the user explicitly says `Start Batch 6`.
 
 ## Prompt for the next ChatGPT batch
 

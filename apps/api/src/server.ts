@@ -3,6 +3,7 @@ import fastifyRateLimit from '@fastify/rate-limit';
 import { PrismaClient } from '@prisma/client';
 import Fastify, { type FastifyServerOptions } from 'fastify';
 
+import { registerAdRoutes } from './ads/routes.js';
 import { registerAuthRoutes } from './auth/routes.js';
 import './auth/types.js';
 import type { AppConfig } from './config.js';
@@ -41,6 +42,8 @@ export function buildServer({
       } as const),
   });
 
+  app.decorateRequest('authAccount', null);
+
   app.register(fastifyJwt, {
     secret: config.JWT_SECRET,
     sign: {
@@ -57,6 +60,7 @@ export function buildServer({
   });
   app.register(fastifyRateLimit, { global: false });
   app.register(async (authApp) => registerAuthRoutes(authApp, prisma, config));
+  app.register(async (adApp) => registerAdRoutes(adApp, prisma));
   app.register(async (referenceApp) => registerReferenceRoutes(referenceApp, prisma));
 
   app.get('/health', async () => ({ status: 'ok' }));
