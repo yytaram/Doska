@@ -701,6 +701,23 @@ Batch 6 completed on 2026-09-07.
 - Next batch: Batch 7 — Feed, search and ad creation UI. Do not start it until
   the user explicitly says `Start Batch 7`.
 
+Post-Batch 6 connection fix completed on 2026-09-07.
+
+- Upgraded the mobile application incrementally from Expo SDK 54 to SDK 57 so
+  it matches the current Expo Go application on the physical phone. SDK 57
+  uses React Native 0.86 and React 19.2.
+- Aligned Expo, React Native and React type packages after the development
+  server reported compatibility warnings.
+- Added the Expo-required `react-native-worklets` and `react-dom` peer
+  dependencies after Expo Doctor identified them as missing. Expo Doctor now
+  reports 18/18 checks passing.
+- Added local-development configuration for browser and Android-emulator
+  testing. The mobile `.env` remains machine-specific and is intentionally not
+  committed; use the documented address appropriate to the selected device.
+- Confirmed mobile type checking, linting, formatting and the Android/iOS/web
+  export pass after the fix. Expo Doctor reports 21/21 checks passing after the
+  SDK 57 upgrade.
+
 ## Prompt for the next ChatGPT batch
 
 Copy this into the next ChatGPT message:

@@ -10,33 +10,42 @@ export function Screen({
   ...props
 }: ScrollViewProps & { children: ReactNode; scroll?: boolean }) {
   if (!scroll) {
-    return <SafeAreaView style={styles.safe}>{children}</SafeAreaView>;
+    return (
+      <View style={styles.safe}>
+        <SafeAreaView>{children}</SafeAreaView>
+      </View>
+    );
   }
 
   return (
-    <SafeAreaView style={styles.safe}>
-      <ScrollView
-        contentContainerStyle={styles.content}
-        keyboardShouldPersistTaps="handled"
-        showsVerticalScrollIndicator={false}
-        {...props}
-      >
-        {children}
-      </ScrollView>
-    </SafeAreaView>
+    <View style={styles.safe}>
+      <SafeAreaView style={styles.flex}>
+        <ScrollView
+          contentContainerStyle={styles.content}
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
+          {...props}
+        >
+          {children}
+        </ScrollView>
+      </SafeAreaView>
+    </View>
   );
 }
 
 export function CenteredScreen({ children }: { children: ReactNode }) {
   return (
-    <SafeAreaView style={styles.safe}>
-      <View style={styles.centered}>{children}</View>
-    </SafeAreaView>
+    <View style={styles.safe}>
+      <SafeAreaView style={styles.flex}>
+        <View style={styles.centered}>{children}</View>
+      </SafeAreaView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   centered: { flex: 1 },
   content: { flexGrow: 1 },
+  flex: { flex: 1 },
   safe: { backgroundColor: colors.background, flex: 1 },
 });

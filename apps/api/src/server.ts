@@ -1,3 +1,4 @@
+import fastifyCors from '@fastify/cors';
 import fastifyJwt from '@fastify/jwt';
 import fastifyRateLimit from '@fastify/rate-limit';
 import { PrismaClient } from '@prisma/client';
@@ -43,6 +44,10 @@ export function buildServer({
   });
 
   app.decorateRequest('authAccount', null);
+
+  app.register(fastifyCors, {
+    origin: process.env.NODE_ENV === 'production' ? false : true,
+  });
 
   app.register(fastifyJwt, {
     secret: config.JWT_SECRET,
