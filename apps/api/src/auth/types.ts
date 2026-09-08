@@ -9,6 +9,7 @@ export interface AuthAccount {
   email: string;
   id: string;
   sessionId: string;
+  role: 'USER' | 'MODERATOR' | 'ADMIN';
 }
 
 declare module '@fastify/jwt' {

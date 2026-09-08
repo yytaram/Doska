@@ -249,6 +249,21 @@ export function closeAd(accessToken: string, id: string) {
   );
 }
 
+export function reportAd(
+  accessToken: string,
+  adId: string,
+  input: { reason: string; details?: string },
+) {
+  return request<{ report: { id: string; status: string } }>(
+    '/reports',
+    {
+      method: 'POST',
+      body: JSON.stringify({ targetType: 'ad', targetId: adId, ...input }),
+    },
+    accessToken,
+  ).then(({ report }) => report);
+}
+
 export function createOffer(
   accessToken: string,
   adId: string,

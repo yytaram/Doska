@@ -10,6 +10,7 @@ import type { FastifyInstance, FastifyReply } from 'fastify';
 
 import { createAuthenticate, requireAccount } from '../auth/guard.js';
 import { parseBody, sendError } from '../http-errors.js';
+import { matchModerationTerms } from '../moderation/service.js';
 import { decodeAdCursor, encodeAdCursor, type AdCursor } from './cursor.js';
 import {
   adParamsSchema,
@@ -216,7 +217,12 @@ export function registerAdRoutes(app: FastifyInstance, prisma: PrismaClient) {
 
       if (!(await validateReferences(prisma, reply, body.categoryId, body.cityId))) return;
 
-      const status = statusToDatabase[body.status];
+      const moderation = await matchModerationTerms(prisma, body.title, body.description);
+      const requestedStatus = statusToDatabase[body.status];
+      const status =
+        requestedStatus === AdStatus.MODERATION && moderation.hasBlock
+          ? AdStatus.REJECTED
+          : requestedStatus;
       const ad = await prisma.$transaction(async (transaction) => {
         const created = await transaction.ad.create({
           data: {
@@ -229,6 +235,10 @@ export function registerAdRoutes(app: FastifyInstance, prisma: PrismaClient) {
             currency: 'KZT',
             condition: conditionToDatabase[body.condition],
             status,
+            moderationMatches: moderation.matches,
+            moderationNote: moderation.hasBlock
+              ? 'Автоматически отклонено: найден запрещённый термин.'
+              : null,
           },
           select: adSelect,
         });
@@ -238,7 +248,10 @@ export function registerAdRoutes(app: FastifyInstance, prisma: PrismaClient) {
             action: 'ad.created',
             entityType: 'ad',
             entityId: created.id,
-            metadata: { status: body.status },
+            metadata: {
+              status: status.toLowerCase(),
+              moderationMatches: moderation.matches.length,
+            },
           },
         });
         return created;
@@ -313,7 +326,14 @@ export function registerAdRoutes(app: FastifyInstance, prisma: PrismaClient) {
 
       const current = await prisma.ad.findFirst({
         where: { id: params.id, ownerId: account.id },
-        select: { id: true, categoryId: true, cityId: true, status: true },
+        select: {
+          id: true,
+          categoryId: true,
+          cityId: true,
+          status: true,
+          title: true,
+          description: true,
+        },
       });
       if (!current) return notFound(reply);
       if (current.status === AdStatus.CLOSED || current.status === AdStatus.EXPIRED) {
@@ -335,7 +355,16 @@ export function registerAdRoutes(app: FastifyInstance, prisma: PrismaClient) {
         current.status === AdStatus.MODERATION
           ? AdStatus.MODERATION
           : AdStatus.DRAFT;
-      const status = body.status ? statusToDatabase[body.status] : defaultStatus;
+      const requestedStatus = body.status ? statusToDatabase[body.status] : defaultStatus;
+      const moderation = await matchModerationTerms(
+        prisma,
+        body.title ?? current.title,
+        body.description ?? current.description,
+      );
+      const status =
+        requestedStatus === AdStatus.MODERATION && moderation.hasBlock
+          ? AdStatus.REJECTED
+          : requestedStatus;
 
       let ad: Parameters<typeof serializeAd>[0];
       try {
@@ -356,6 +385,10 @@ export function registerAdRoutes(app: FastifyInstance, prisma: PrismaClient) {
               categoryId,
               cityId,
               status,
+              moderationMatches: moderation.matches,
+              moderationNote: moderation.hasBlock
+                ? 'Автоматически отклонено: найден запрещённый термин.'
+                : null,
             },
           });
           if (result.count !== 1) throw new AdStateChangedError();
@@ -370,7 +403,10 @@ export function registerAdRoutes(app: FastifyInstance, prisma: PrismaClient) {
               action: 'ad.updated',
               entityType: 'ad',
               entityId: current.id,
-              metadata: { status: status.toLowerCase() },
+              metadata: {
+                status: status.toLowerCase(),
+                moderationMatches: moderation.matches.length,
+              },
             },
           });
           return updated;

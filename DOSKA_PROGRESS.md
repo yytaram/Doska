@@ -481,7 +481,7 @@ register → create ad → find ad → send offer → chat → close ad → repo
 ### Current status
 
 - Overall status: `in_progress`
-- Current batch: `Batch 9 (not started)`
+- Current batch: `Batch 10 (not started)`
 - Last updated: `2026-09-08`
 
 ### Completed work
@@ -497,7 +497,7 @@ register → create ad → find ad → send offer → chat → close ad → repo
 | 6     | complete    | Russian mobile authentication, session handling and profile UI created     |
 | 7     | complete    | Feed, full-text search, filters and ad-management UI created               |
 | 8     | complete    | Offer lifecycle, authorized real-time chat and mobile UI created           |
-| 9     | not_started | Moderation/admin not created                                               |
+| 9     | complete    | Moderation, reports, staff authorization and admin panel created           |
 | 10    | not_started | Push/reliability not created                                               |
 | 11    | not_started | Deployment not created                                                     |
 | 12    | not_started | Security/beta not started                                                  |
@@ -780,6 +780,41 @@ Batch 8 completed on 2026-09-08.
   documentation.
 - Next batch: Batch 9 — Moderation, reports and admin panel. Do not start it until
   the user explicitly says `Start Batch 9`.
+
+Batch 9 completed on 2026-09-08.
+
+- Added Unicode-aware Russian text normalization and active moderation-term
+  matching for ad creation and editing. Review terms retain evidence for the
+  queue; block terms reject submitted ads immediately.
+- Added authenticated reports for ads, users and offers, plus staff queues and
+  approve, reject, hide, restore, resolve and dismiss workflows.
+- Added database-backed `USER`, `MODERATOR` and `ADMIN` authorization. Ordinary
+  users receive `403` on every admin route; user and category management remains
+  restricted to full administrators.
+- Built Russian Next.js admin pages for ads, reports, users, categories and
+  moderation terms. The panel runs locally on port 3001 alongside the API on
+  port 3000 and verifies staff access after login.
+- Added user suspension/restoration with session revocation, moderation evidence
+  and notes on ads, an audited local admin-bootstrap command, and audit records
+  for every staff mutation.
+- Added a Russian mobile ad-report form and documented setup, role boundaries,
+  moderation behavior and the manual acceptance flow in
+  `docs/moderation-admin.md`.
+- Added migration `20260908170000_add_ad_moderation_evidence`; it deployed
+  successfully to the local database.
+- Verification passed: seven API integration tests, workspace lint, TypeScript
+  checks, formatting and production builds for API, admin and mobile targets.
+  The new security test proves normal-user denial, normalized blocking,
+  moderator approval, report-based hiding and corresponding audit events.
+- Manual action: create or reuse one fake account, grant it locally with
+  `pnpm --filter @doska/api admin:grant -- <fake-email>`, sign in again, then
+  review the five admin pages at `http://localhost:3001`. Define real prohibited
+  categories and report reason codes with a legal adviser before real users.
+- Known shortcuts: report reasons are free text pending legal review; the admin
+  client uses short-lived access tokens in session storage and requires login
+  again after expiry; no real prohibited-term list is seeded.
+- Next batch: Batch 10 — Push notifications and reliability. Do not start it
+  until the user explicitly says `Start Batch 10`.
 
 ## Prompt for the next ChatGPT batch
 

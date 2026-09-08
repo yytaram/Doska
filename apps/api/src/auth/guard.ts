@@ -38,6 +38,7 @@ export function createAuthenticate(prisma: PrismaClient) {
             email: true,
             status: true,
             authVersion: true,
+            role: true,
           },
         },
       },
@@ -59,6 +60,21 @@ export function createAuthenticate(prisma: PrismaClient) {
       email: session.user.email,
       authVersion: session.user.authVersion,
       sessionId: token.sid,
+      role: session.user.role,
     };
+  };
+}
+
+export function createRequireStaff(prisma: PrismaClient) {
+  const authenticate = createAuthenticate(prisma);
+
+  return async (request: FastifyRequest, reply: FastifyReply) => {
+    await authenticate(request, reply);
+    if (reply.sent) return;
+
+    const account = requireAccount(request);
+    if (account.role !== 'ADMIN' && account.role !== 'MODERATOR') {
+      return sendError(reply, 403, 'ADMIN_FORBIDDEN', 'Доступ разрешён только модераторам.');
+    }
   };
 }

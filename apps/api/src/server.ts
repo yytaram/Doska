@@ -5,6 +5,7 @@ import { PrismaClient } from '@prisma/client';
 import Fastify, { type FastifyServerOptions } from 'fastify';
 
 import { registerAdRoutes } from './ads/routes.js';
+import { registerAdminRoutes } from './admin/routes.js';
 import { registerAuthRoutes } from './auth/routes.js';
 import './auth/types.js';
 import type { AppConfig } from './config.js';
@@ -13,6 +14,7 @@ import { sendError } from './http-errors.js';
 import { registerOfferRoutes } from './offers/routes.js';
 import { registerChatSocket } from './offers/socket.js';
 import { registerReferenceRoutes } from './reference/routes.js';
+import { registerReportRoutes } from './reports/routes.js';
 
 interface BuildServerOptions {
   config: AppConfig;
@@ -71,6 +73,8 @@ export function buildServer({
   app.register(async (adApp) => registerAdRoutes(adApp, prisma));
   app.register(async (offerApp) => registerOfferRoutes(offerApp, prisma, chatIo));
   app.register(async (referenceApp) => registerReferenceRoutes(referenceApp, prisma));
+  app.register(async (reportApp) => registerReportRoutes(reportApp, prisma));
+  app.register(async (adminApp) => registerAdminRoutes(adminApp, prisma));
 
   app.get('/health', async () => ({ status: 'ok' }));
 

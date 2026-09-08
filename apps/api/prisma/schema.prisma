@@ -97,6 +97,7 @@ model User {
   auditLogs       AuditLog[]
   deviceTokens    DeviceToken[]
   sentMessages    Message[]
+  moderationTerms ModerationTerm[]
 
   @@index([status])
   @@map("users")
@@ -183,6 +184,8 @@ model Ad {
   publishedAt DateTime?     @map("published_at") @db.Timestamptz(3)
   expiresAt   DateTime?     @map("expires_at") @db.Timestamptz(3)
   closedAt    DateTime?     @map("closed_at") @db.Timestamptz(3)
+  moderationMatches Json?   @map("moderation_matches") @db.JsonB
+  moderationNote String?    @map("moderation_note") @db.VarChar(2000)
   createdAt   DateTime      @default(now()) @map("created_at") @db.Timestamptz(3)
   updatedAt   DateTime      @updatedAt @map("updated_at") @db.Timestamptz(3)
 
@@ -320,8 +323,12 @@ model ModerationTerm {
   isActive       Boolean            @default(true) @map("is_active")
   createdAt      DateTime           @default(now()) @map("created_at") @db.Timestamptz(3)
   updatedAt      DateTime           @updatedAt @map("updated_at") @db.Timestamptz(3)
+  createdById    String?            @map("created_by_id") @db.Uuid
+
+  createdBy User? @relation(fields: [createdById], references: [id], onDelete: SetNull)
 
   @@index([isActive, severity])
+  @@index([createdById])
   @@map("moderation_terms")
 }
 

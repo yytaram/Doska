@@ -69,6 +69,11 @@ export default function AdDetailScreen() {
             Предложить товар
           </PrimaryButton>
         )}
+        {ad.owner.id !== userId ? (
+          <PrimaryButton variant="text" onPress={() => router.push(`/ads/${ad.id}/report`)}>
+            Пожаловаться на объявление
+          </PrimaryButton>
+        ) : null}
       </Screen>
     </>
   );
