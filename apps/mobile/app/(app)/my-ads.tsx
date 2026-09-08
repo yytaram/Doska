@@ -60,6 +60,12 @@ export default function MyAdsScreen() {
             <View key={ad.id} style={styles.item}>
               <AdCard ad={ad} onPress={() => router.push(`/ads/${ad.id}/edit`)} showStatus />
               <View style={styles.actions}>
+                <PrimaryButton
+                  onPress={() => router.push(`/ads/${ad.id}/offers`)}
+                  variant="secondary"
+                >
+                  Предложения
+                </PrimaryButton>
                 {ad.status !== 'closed' && ad.status !== 'expired' ? (
                   <PrimaryButton
                     onPress={() => router.push(`/ads/${ad.id}/edit`)}

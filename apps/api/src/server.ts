@@ -10,6 +10,8 @@ import './auth/types.js';
 import type { AppConfig } from './config.js';
 import { createDatabase, type Database } from './database.js';
 import { sendError } from './http-errors.js';
+import { registerOfferRoutes } from './offers/routes.js';
+import { registerChatSocket } from './offers/socket.js';
 import { registerReferenceRoutes } from './reference/routes.js';
 
 interface BuildServerOptions {
@@ -64,8 +66,10 @@ export function buildServer({
     },
   });
   app.register(fastifyRateLimit, { global: false });
+  const chatIo = registerChatSocket(app, prisma);
   app.register(async (authApp) => registerAuthRoutes(authApp, prisma, config));
   app.register(async (adApp) => registerAdRoutes(adApp, prisma));
+  app.register(async (offerApp) => registerOfferRoutes(offerApp, prisma, chatIo));
   app.register(async (referenceApp) => registerReferenceRoutes(referenceApp, prisma));
 
   app.get('/health', async () => ({ status: 'ok' }));

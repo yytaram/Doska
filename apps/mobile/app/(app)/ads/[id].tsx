@@ -1,15 +1,18 @@
 import { useQuery } from '@tanstack/react-query';
-import { Stack, useLocalSearchParams } from 'expo-router';
+import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import { StyleSheet, Text, View } from 'react-native';
 
 import { getAd } from '../../../src/api/client';
+import { useAuthStore } from '../../../src/auth/store';
 import { conditionLabels, formatBudget } from '../../../src/components/ad-card';
 import { CenteredScreen, Screen } from '../../../src/components/screen';
-import { LoadingView, Notice } from '../../../src/components/ui';
+import { LoadingView, Notice, PrimaryButton } from '../../../src/components/ui';
 import { colors, radius, spacing } from '../../../src/theme';
 
 export default function AdDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
+  const router = useRouter();
+  const userId = useAuthStore((state) => state.user?.id);
   const adQuery = useQuery({
     queryKey: ['ad', id],
     queryFn: () => getAd(id),
@@ -57,7 +60,15 @@ export default function AdDetailScreen() {
             {ad.owner.profile?.nickname ?? 'Пользователь Doska'}
           </Text>
         </View>
-        <Notice tone="info">Отправка предложений появится в следующем этапе.</Notice>
+        {ad.owner.id === userId ? (
+          <PrimaryButton onPress={() => router.push(`/ads/${ad.id}/offers`)}>
+            Посмотреть предложения
+          </PrimaryButton>
+        ) : (
+          <PrimaryButton onPress={() => router.push(`/ads/${ad.id}/offer`)}>
+            Предложить товар
+          </PrimaryButton>
+        )}
       </Screen>
     </>
   );

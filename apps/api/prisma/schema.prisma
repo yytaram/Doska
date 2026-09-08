@@ -96,6 +96,7 @@ model User {
   reportsResolved Report[]      @relation("ReportResolver")
   auditLogs       AuditLog[]
   deviceTokens    DeviceToken[]
+  sentMessages    Message[]
 
   @@index([status])
   @@map("users")
@@ -216,11 +217,42 @@ model Offer {
   ad      Ad       @relation(fields: [adId], references: [id], onDelete: Cascade)
   sender  User     @relation(fields: [senderId], references: [id], onDelete: Restrict)
   reports Report[]
+  chat    Chat?
 
   @@unique([adId, senderId])
   @@index([adId, status, createdAt])
   @@index([senderId, status, createdAt])
   @@map("offers")
+}
+
+model Chat {
+  id            String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  offerId       String    @unique @map("offer_id") @db.Uuid
+  lastMessageAt DateTime? @map("last_message_at") @db.Timestamptz(3)
+  createdAt     DateTime  @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt     DateTime  @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  offer    Offer     @relation(fields: [offerId], references: [id], onDelete: Cascade)
+  messages Message[]
+
+  @@index([updatedAt, id])
+  @@map("chats")
+}
+
+model Message {
+  id        String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  chatId    String    @map("chat_id") @db.Uuid
+  senderId  String    @map("sender_id") @db.Uuid
+  body      String    @db.VarChar(2000)
+  readAt    DateTime? @map("read_at") @db.Timestamptz(3)
+  createdAt DateTime  @default(now()) @map("created_at") @db.Timestamptz(3)
+
+  chat   Chat @relation(fields: [chatId], references: [id], onDelete: Cascade)
+  sender User @relation(fields: [senderId], references: [id], onDelete: Restrict)
+
+  @@index([chatId, createdAt, id])
+  @@index([chatId, readAt, senderId])
+  @@map("messages")
 }
 
 model Favorite {

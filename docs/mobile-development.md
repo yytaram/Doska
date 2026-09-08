@@ -44,6 +44,8 @@ in `apps/mobile/.env`. Restart Expo after changing that file.
 - Public ad details
 - Create and edit ad forms with draft and moderation submission actions
 - My ads with lifecycle status and a confirmed close action
+- Send an offer from an ad, list sent/received offers and accept, reject or withdraw
+- Real-time two-person chats with unread counts, message history and blocking
 
 Run `pnpm db:seed` to restore the three public fake-data examples used for UI
 review, including “Куплю iPhone 15 Pro 256 ГБ”. User-created ads submitted for

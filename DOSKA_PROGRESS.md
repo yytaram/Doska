@@ -481,7 +481,7 @@ register → create ad → find ad → send offer → chat → close ad → repo
 ### Current status
 
 - Overall status: `in_progress`
-- Current batch: `Batch 8 (not started)`
+- Current batch: `Batch 9 (not started)`
 - Last updated: `2026-09-08`
 
 ### Completed work
@@ -496,7 +496,7 @@ register → create ad → find ad → send offer → chat → close ad → repo
 | 5     | complete    | Secure ads lifecycle API, public feed and cursor pagination created        |
 | 6     | complete    | Russian mobile authentication, session handling and profile UI created     |
 | 7     | complete    | Feed, full-text search, filters and ad-management UI created               |
-| 8     | not_started | Offers/chat not created                                                    |
+| 8     | complete    | Offer lifecycle, authorized real-time chat and mobile UI created           |
 | 9     | not_started | Moderation/admin not created                                               |
 | 10    | not_started | Push/reliability not created                                               |
 | 11    | not_started | Deployment not created                                                     |
@@ -743,6 +743,43 @@ Batch 7 completed on 2026-09-08.
   Batch 9 adds moderator approval.
 - Next batch: Batch 8 — Offers and chat. Do not start it until the user
   explicitly says `Start Batch 8`.
+
+Batch 8 completed on 2026-09-08.
+
+- Added transactional offer creation with exactly one chat, duplicate-offer
+  prevention, sent/received lists and owner-authorized accept/reject plus
+  sender-authorized withdrawal. Accepting one offer rejects other pending offers
+  on the same ad.
+- Added chat and message tables with indexed activity ordering, cursor message
+  pagination and per-message read timestamps.
+- Added authorized Socket.IO rooms and HTTP fallback routes for cursor-paginated
+  message history, sending and read markers. Chat lists include the latest
+  message, counterpart and unread count.
+- Added 1–2000 character message validation and per-user send limits for both
+  HTTP and Socket.IO. Access tokens are revalidated against the active session
+  before a socket connection is accepted.
+- Added basic blocking: a block in either direction prevents new offers and new
+  messages without deleting existing history.
+- Built Russian mobile screens for sending and managing offers, received offers,
+  chat lists, unread badges, message history, live messaging and blocking.
+- Added `docs/offers-chat.md` with routes, socket events, security behavior and a
+  two-account manual test. Updated mobile-development documentation.
+- Security integration coverage proves a third user cannot read another chat or
+  join its Socket.IO room and covers duplicate offers, ownership, unread/read
+  behavior, message limits, blocking and offer state transitions.
+- Verification passed: both chat migrations deployed, six API integration tests,
+  workspace lint and TypeScript checks. Full formatting and Android/iOS/web
+  production builds were run at batch completion.
+- Manual action: test with two separate fake accounts in two browser profiles or
+  devices. Chat is currently allowed immediately after a valid pending offer;
+  confirm whether that product choice should remain before real-user testing.
+- Known shortcut: chat rate limiting and real-time fan-out are process-local. A
+  shared Redis adapter/limiter is required before multiple API instances.
+- Changed areas: Prisma schema/migrations, `apps/api/src/offers`, API server and
+  dependencies, mobile API/chat components and offer/chat screens, lockfile and
+  documentation.
+- Next batch: Batch 9 — Moderation, reports and admin panel. Do not start it until
+  the user explicitly says `Start Batch 9`.
 
 ## Prompt for the next ChatGPT batch
 

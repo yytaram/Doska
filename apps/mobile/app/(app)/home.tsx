@@ -73,9 +73,14 @@ export default function HomeScreen() {
           <Text style={styles.kicker}>DOSKA</Text>
           <Text style={styles.title}>Что вы ищете?</Text>
         </View>
-        <Pressable onPress={() => router.push('/profile')}>
-          <Text style={styles.profile}>Профиль</Text>
-        </Pressable>
+        <View style={styles.headerActions}>
+          <Pressable onPress={() => router.push('/chats')}>
+            <Text style={styles.profile}>Чаты</Text>
+          </Pressable>
+          <Pressable onPress={() => router.push('/profile')}>
+            <Text style={styles.profile}>Профиль</Text>
+          </Pressable>
+        </View>
       </View>
 
       <View style={styles.searchRow}>
@@ -206,9 +211,14 @@ export default function HomeScreen() {
 
       <View style={styles.sectionHeader}>
         <Text style={styles.sectionTitle}>Новые запросы</Text>
-        <Pressable onPress={() => router.push('/my-ads')}>
-          <Text style={styles.link}>Мои объявления</Text>
-        </Pressable>
+        <View style={styles.headerActions}>
+          <Pressable onPress={() => router.push('/my-offers')}>
+            <Text style={styles.link}>Мои предложения</Text>
+          </Pressable>
+          <Pressable onPress={() => router.push('/my-ads')}>
+            <Text style={styles.link}>Мои объявления</Text>
+          </Pressable>
+        </View>
       </View>
 
       {adsQuery.isError ? (
@@ -291,6 +301,7 @@ const styles = StyleSheet.create({
     padding: spacing.md,
   },
   header: { alignItems: 'center', flexDirection: 'row', justifyContent: 'space-between' },
+  headerActions: { alignItems: 'flex-end', gap: spacing.sm },
   kicker: { color: colors.accent, fontSize: 12, fontWeight: '900', letterSpacing: 1.4 },
   label: { color: colors.ink, fontSize: 14, fontWeight: '700', marginBottom: spacing.sm },
   link: { color: colors.accent, fontSize: 14, fontWeight: '800' },
