@@ -2,7 +2,7 @@ import type { FastifyReply } from 'fastify';
 import { z } from 'zod';
 
 export function sendError(reply: FastifyReply, statusCode: number, code: string, message: string) {
-  return reply.code(statusCode).send({ error: { code, message } });
+  return reply.code(statusCode).send({ error: { code, message }, requestId: reply.request.id });
 }
 
 export function parseBody<TSchema extends z.ZodType>(

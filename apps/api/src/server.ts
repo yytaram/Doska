@@ -1,3 +1,5 @@
+import { randomUUID } from 'node:crypto';
+
 import fastifyCors from '@fastify/cors';
 import fastifyJwt from '@fastify/jwt';
 import fastifyRateLimit from '@fastify/rate-limit';
@@ -11,6 +13,10 @@ import './auth/types.js';
 import type { AppConfig } from './config.js';
 import { createDatabase, type Database } from './database.js';
 import { sendError } from './http-errors.js';
+import { ExpoNotificationSender } from './notifications/expo-sender.js';
+import { registerNotificationRoutes } from './notifications/routes.js';
+import type { NotificationSender } from './notifications/service.js';
+import { createNotificationWorker } from './notifications/worker.js';
 import { registerOfferRoutes } from './offers/routes.js';
 import { registerChatSocket } from './offers/socket.js';
 import { registerReferenceRoutes } from './reference/routes.js';
@@ -20,6 +26,7 @@ interface BuildServerOptions {
   config: AppConfig;
   database?: Database;
   logger?: FastifyServerOptions['logger'];
+  notificationSender?: NotificationSender;
   prisma?: PrismaClient;
 }
 
@@ -27,9 +34,16 @@ export function buildServer({
   config,
   database = createDatabase(config.DATABASE_URL),
   logger,
+  notificationSender = new ExpoNotificationSender(config.EXPO_PUSH_URL, config.EXPO_ACCESS_TOKEN),
   prisma = new PrismaClient(),
 }: BuildServerOptions) {
   const app = Fastify({
+    genReqId(request) {
+      const supplied = request.headers['x-request-id'];
+      return typeof supplied === 'string' && /^[A-Za-z0-9._-]{1,64}$/.test(supplied)
+        ? supplied
+        : randomUUID();
+    },
     logger:
       logger ??
       ({
@@ -40,6 +54,10 @@ export function buildServer({
             'req.body.currentPassword',
             'req.body.newPassword',
             'req.body.refreshToken',
+            'req.body.body',
+            'req.body.description',
+            'req.body.details',
+            'req.body.token',
             'res.headers["set-cookie"]',
           ],
           censor: '[REDACTED]',
@@ -48,6 +66,11 @@ export function buildServer({
   });
 
   app.decorateRequest('authAccount', null);
+
+  app.addHook('onSend', async (request, reply, payload) => {
+    reply.header('x-request-id', request.id);
+    return payload;
+  });
 
   app.register(fastifyCors, {
     origin: process.env.NODE_ENV === 'production' ? false : true,
@@ -75,20 +98,38 @@ export function buildServer({
   app.register(async (referenceApp) => registerReferenceRoutes(referenceApp, prisma));
   app.register(async (reportApp) => registerReportRoutes(reportApp, prisma));
   app.register(async (adminApp) => registerAdminRoutes(adminApp, prisma));
+  app.register(async (notificationApp) => registerNotificationRoutes(notificationApp, prisma));
 
   app.get('/health', async () => ({ status: 'ok' }));
+
+  app.get('/health/live', async () => ({ status: 'ok' }));
 
   app.get('/health/database', async (_request, reply) => {
     try {
       await database.ping();
       return { status: 'ok' };
     } catch (error: unknown) {
-      app.log.warn({ error }, 'Database health check failed');
+      app.log.warn({ event: 'health.database_unavailable', error }, 'Database health check failed');
       return reply.code(503).send({ status: 'unavailable' });
     }
   });
 
+  app.get('/health/ready', async (_request, reply) => {
+    try {
+      await database.ping();
+      return { status: 'ready' };
+    } catch {
+      return reply.code(503).send({ status: 'unavailable' });
+    }
+  });
+
+  const notificationWorker = createNotificationWorker(prisma, notificationSender, app.log);
+  app.addHook('onReady', async () => {
+    if (config.NODE_ENV !== 'test') notificationWorker.start();
+  });
+
   app.addHook('onClose', async () => {
+    notificationWorker.stop();
     await Promise.all([database.close(), prisma.$disconnect()]);
   });
 
@@ -109,7 +150,7 @@ export function buildServer({
       return sendError(reply, statusCode, 'INVALID_REQUEST', 'Некорректный запрос.');
     }
 
-    request.log.error({ error }, 'Unhandled request error');
+    request.log.error({ event: 'request.failed', error }, 'Unhandled request error');
     return sendError(reply, 500, 'INTERNAL_ERROR', 'Внутренняя ошибка сервера.');
   });
 

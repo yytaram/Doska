@@ -73,6 +73,20 @@ enum DeviceProvider {
   EXPO
 }
 
+enum NotificationType {
+  NEW_OFFER
+  NEW_MESSAGE
+  MODERATION_RESULT
+  AD_EXPIRING
+}
+
+enum NotificationJobStatus {
+  PENDING
+  PROCESSING
+  SENT
+  FAILED
+}
+
 model User {
   id           String     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   email        String     @unique @db.VarChar(320)
@@ -98,6 +112,7 @@ model User {
   deviceTokens    DeviceToken[]
   sentMessages    Message[]
   moderationTerms ModerationTerm[]
+  notificationJobs NotificationJob[]
 
   @@index([status])
   @@map("users")
@@ -364,4 +379,26 @@ model DeviceToken {
 
   @@index([userId, isEnabled])
   @@map("device_tokens")
+}
+
+model NotificationJob {
+  id            String                @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  recipientId   String                @map("recipient_id") @db.Uuid
+  type          NotificationType
+  status        NotificationJobStatus @default(PENDING)
+  dedupeKey     String                @unique @map("dedupe_key") @db.VarChar(200)
+  data          Json?                 @db.JsonB
+  attempts      Int                   @default(0)
+  nextAttemptAt DateTime?             @default(now()) @map("next_attempt_at") @db.Timestamptz(3)
+  lockedAt      DateTime?             @map("locked_at") @db.Timestamptz(3)
+  sentAt        DateTime?             @map("sent_at") @db.Timestamptz(3)
+  lastError     String?               @map("last_error") @db.VarChar(500)
+  createdAt     DateTime              @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt     DateTime              @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  recipient User @relation(fields: [recipientId], references: [id], onDelete: Cascade)
+
+  @@index([status, nextAttemptAt, createdAt])
+  @@index([recipientId, createdAt])
+  @@map("notification_jobs")
 }

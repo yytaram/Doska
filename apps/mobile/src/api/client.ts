@@ -332,6 +332,21 @@ export function unblockUser(accessToken: string, userId: string) {
   return request<void>(`/account/blocks/${userId}`, { method: 'DELETE' }, accessToken);
 }
 
+export function registerDeviceToken(
+  accessToken: string,
+  input: { platform: 'android' | 'ios'; token: string },
+) {
+  return request<{ deviceToken: { id: string } }>(
+    '/account/device-tokens',
+    { method: 'POST', body: JSON.stringify(input) },
+    accessToken,
+  ).then(({ deviceToken }) => deviceToken);
+}
+
+export function removeDeviceToken(accessToken: string, id: string) {
+  return request<void>(`/account/device-tokens/${id}`, { method: 'DELETE' }, accessToken);
+}
+
 export function login(input: { email: string; password: string }) {
   return request<TokenPair>('/auth/login', {
     body: JSON.stringify(input),

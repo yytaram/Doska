@@ -1,6 +1,7 @@
 import {
   AdStatus,
   ModerationSeverity,
+  NotificationType,
   PrismaClient,
   ReportStatus,
   UserRole,
@@ -12,6 +13,7 @@ import { z } from 'zod';
 import { createRequireStaff, requireAccount } from '../auth/guard.js';
 import { parseBody, sendError } from '../http-errors.js';
 import { normalizeModerationText } from '../moderation/service.js';
+import { enqueueNotification } from '../notifications/service.js';
 
 const idParams = z.object({ id: z.string().uuid() });
 const listQuery = z.object({ limit: z.coerce.number().int().min(1).max(100).default(50) });
@@ -123,7 +125,7 @@ export function registerAdminRoutes(app: FastifyInstance, prisma: PrismaClient) 
       if (!params || !body) return;
       const existing = await prisma.ad.findUnique({
         where: { id: params.id },
-        select: { id: true },
+        select: { id: true, ownerId: true },
       });
       if (!existing) return sendError(reply, 404, 'AD_NOT_FOUND', 'Объявление не найдено.');
       const ad = await prisma.$transaction(async (tx) => {
@@ -136,9 +138,21 @@ export function registerAdminRoutes(app: FastifyInstance, prisma: PrismaClient) 
           },
           select: { id: true, title: true, status: true, moderationNote: true },
         });
-        await tx.auditLog.create({
+        const auditEntry = await tx.auditLog.create({
           data: audit(actor.id, action, 'ad', params.id, { note: body.note }),
         });
+        if (path === 'approve' || path === 'reject') {
+          await enqueueNotification(tx, {
+            dedupeKey: `moderation-result:${auditEntry.id}`,
+            recipientId: existing.ownerId,
+            type: NotificationType.MODERATION_RESULT,
+            data: {
+              adId: params.id,
+              result: path === 'approve' ? 'approved' : 'rejected',
+              url: '/my-ads',
+            },
+          });
+        }
         return updated;
       });
       return { ad: { ...ad, status: ad.status.toLowerCase() } };

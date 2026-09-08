@@ -10,6 +10,7 @@ import {
   type User,
 } from '../api/client';
 import { clearTokenPair, loadTokenPair, saveTokenPair } from './token-storage';
+import { unregisterPushNotifications } from '../notifications/registration';
 
 type SessionStatus = 'loading' | 'signedIn' | 'signedOut';
 
@@ -83,6 +84,8 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   },
 
   signOut: async () => {
+    const accessToken = get().accessToken;
+    if (accessToken) await unregisterPushNotifications(accessToken).catch(() => undefined);
     await clearTokenPair();
     set({ accessToken: null, status: 'signedOut', user: null });
   },

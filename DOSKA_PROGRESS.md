@@ -481,7 +481,7 @@ register → create ad → find ad → send offer → chat → close ad → repo
 ### Current status
 
 - Overall status: `in_progress`
-- Current batch: `Batch 10 (not started)`
+- Current batch: `Batch 11 (not started)`
 - Last updated: `2026-09-08`
 
 ### Completed work
@@ -498,7 +498,7 @@ register → create ad → find ad → send offer → chat → close ad → repo
 | 7     | complete    | Feed, full-text search, filters and ad-management UI created               |
 | 8     | complete    | Offer lifecycle, authorized real-time chat and mobile UI created           |
 | 9     | complete    | Moderation, reports, staff authorization and admin panel created           |
-| 10    | not_started | Push/reliability not created                                               |
+| 10    | complete    | Retry-safe push notifications, request IDs and readiness checks created    |
 | 11    | not_started | Deployment not created                                                     |
 | 12    | not_started | Security/beta not started                                                  |
 
@@ -815,6 +815,45 @@ Batch 9 completed on 2026-09-08.
   again after expiry; no real prohibited-term list is seeded.
 - Next batch: Batch 10 — Push notifications and reliability. Do not start it
   until the user explicitly says `Start Batch 10`.
+
+Batch 10 completed on 2026-09-08.
+
+- Added authenticated Expo device token registration and owner-only removal,
+  with automatic mobile registration after sign-in and removal during sign-out.
+- Added a PostgreSQL notification outbox with unique event keys, claim leases,
+  five-attempt exponential retries and automatic disabling of tokens rejected
+  as unregistered by Expo.
+- Queued generic notifications transactionally for new offers, new messages and
+  approved/rejected moderation results. Added an hourly idempotent scan for
+  active ads expiring within 24 hours.
+- Kept message text, offer descriptions/prices, moderation notes, report details,
+  passwords and tokens out of notification payloads and operational logs.
+- Added structured worker events, safe request-ID propagation in response
+  headers and error JSON, expanded log redaction, and separate `/health/live`
+  and database-backed `/health/ready` endpoints.
+- Added the Expo notifications mobile plugin and permission flow for Android and
+  iOS development builds. Missing EAS project configuration is handled as a safe
+  no-op so ordinary local UI development still works.
+- Added migration `20260908193000_add_notification_outbox`; it deployed
+  successfully and Prisma reports no pending migrations.
+- Added `docs/notifications-reliability.md` with event wording, privacy rules,
+  retry behavior, API routes and the physical-device test procedure.
+- Verification passed: eight API integration tests, full workspace TypeScript,
+  lint and formatting checks, and production builds for API, admin and Android,
+  iOS and web mobile targets. Tests cover token ownership, event deduplication,
+  provider failure/retry, generic private-message notifications, offer/message/
+  moderation enqueueing, expiration deduplication, request IDs and readiness.
+- Manual action: create an Expo account and EAS project for `com.doska.app`, set
+  its project UUID as `EXPO_PUBLIC_EAS_PROJECT_ID` in `apps/mobile/.env`, build a
+  development client, and test notifications on a physical device. A compatible
+  Android emulator with Google Play services can also work, but remote push is
+  not available in Expo Go and should not be evaluated through the web build.
+- Product decision still required: confirm notification wording and choose quiet
+  hours. The fake-beta default is immediate delivery with no quiet-hours window.
+- Known shortcut: the worker currently runs inside the single API process. Move
+  it to a separately supervised worker before scaling to multiple API instances.
+- Next batch: Batch 11 — Deployment of the single CIS-wide environment. Do not
+  start it until the user explicitly says `Start Batch 11`.
 
 ## Prompt for the next ChatGPT batch
 

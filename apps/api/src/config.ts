@@ -24,6 +24,8 @@ const configSchema = z
     JWT_SECRET: z.string().min(32).default(developmentDefaults.JWT_SECRET),
     JWT_ACCESS_TTL_SECONDS: z.coerce.number().int().min(60).max(3600).default(900),
     REFRESH_TOKEN_TTL_DAYS: z.coerce.number().int().min(1).max(90).default(30),
+    EXPO_PUSH_URL: z.url().default('https://exp.host/--/api/v2/push/send'),
+    EXPO_ACCESS_TOKEN: z.string().min(1).optional(),
   })
   .superRefine((config, context) => {
     if (config.NODE_ENV === 'production' && config.JWT_SECRET === developmentDefaults.JWT_SECRET) {

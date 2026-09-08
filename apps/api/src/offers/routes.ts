@@ -1,9 +1,10 @@
-import { AdStatus, OfferStatus, Prisma, PrismaClient } from '@prisma/client';
+import { AdStatus, NotificationType, OfferStatus, Prisma, PrismaClient } from '@prisma/client';
 import type { FastifyInstance, FastifyReply } from 'fastify';
 import type { Server as SocketServer } from 'socket.io';
 
 import { createAuthenticate, requireAccount } from '../auth/guard.js';
 import { parseBody, sendError } from '../http-errors.js';
+import { enqueueNotification } from '../notifications/service.js';
 import { createChatMessage, findChatForUser, usersAreBlocked } from './chat-service.js';
 import { decodeCursor, encodeCursor } from './cursor.js';
 import {
@@ -100,6 +101,12 @@ export function registerOfferRoutes(
               entityType: 'offer',
               entityId: created.id,
             },
+          });
+          await enqueueNotification(transaction, {
+            dedupeKey: `new-offer:${created.id}`,
+            recipientId: ad.ownerId,
+            type: NotificationType.NEW_OFFER,
+            data: { adId: ad.id, offerId: created.id, url: `/ads/${ad.id}/offers` },
           });
           return created;
         });

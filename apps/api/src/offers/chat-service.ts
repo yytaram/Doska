@@ -1,4 +1,6 @@
-import { PrismaClient } from '@prisma/client';
+import { NotificationType, PrismaClient } from '@prisma/client';
+
+import { enqueueNotification } from '../notifications/service.js';
 
 import { messageSelect, serializeMessage } from './serializer.js';
 
@@ -49,6 +51,12 @@ export async function createChatMessage(
     await transaction.chat.update({
       where: { id: chatId },
       data: { lastMessageAt: created.createdAt },
+    });
+    await enqueueNotification(transaction, {
+      dedupeKey: `new-message:${created.id}`,
+      recipientId: otherId,
+      type: NotificationType.NEW_MESSAGE,
+      data: { chatId, messageId: created.id, url: `/chats/${chatId}` },
     });
     return created;
   });

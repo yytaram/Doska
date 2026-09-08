@@ -5,6 +5,7 @@ import { useEffect, useState } from 'react';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import { useAuthStore } from '../src/auth/store';
+import { registerForPushNotifications } from '../src/notifications/registration';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -14,11 +15,16 @@ const queryClient = new QueryClient({
 
 export default function RootLayout() {
   const initialize = useAuthStore((state) => state.initialize);
+  const accessToken = useAuthStore((state) => state.accessToken);
   const [isReady, setIsReady] = useState(false);
 
   useEffect(() => {
     void initialize().finally(() => setIsReady(true));
   }, [initialize]);
+
+  useEffect(() => {
+    if (accessToken) void registerForPushNotifications(accessToken).catch(() => undefined);
+  }, [accessToken]);
 
   if (!isReady) return null;
 
